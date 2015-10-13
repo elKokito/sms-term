@@ -10,28 +10,18 @@ import app
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect(('localhost', 5000))
+global_data = None
 
-class ContactName(urwid.ListBox):
+class Contact(urwid.ListBox):
 
-    def __init__(self, data):
+    def __init__(self):
 
-        numbers = data.keys()
         body = []
-        self.longest_name = 0
-        self.button_list = []
-        for number in numbers:
-            if data[number][0]["name"] != "unknown":
-                button = urwid.Button(("name", data[number][0]["name"]))
-                self.button_list.append({"button": button, "number": number})
-                body.append(urwid.AttrMap(button, "name"))
-                if len(data[number][0]) > self.longest_name:
-                    self.longest_name = len(data[number][0])
-            else:
-                button = urwid.Button(number)
-                self.button_list.append({"button": button, "number": number})
-                body.append(button)
-                if len(number) > self.longest_name:
-                    self.longest_name = len(number)
+        self.longest_name = max(global_data.display_name_list)
+        for display, contact in global_data.display_name_list:
+            button = urwid.Button(display)
+            contact.widget = button
+            body.append(urwid.AttrMap(button, "name")
         super(ContactName, self).__init__(urwid.SimpleFocusListWalker(body))
 
     def get_index_for_widget(self, name):
@@ -42,6 +32,23 @@ class ContactName(urwid.ListBox):
             if item.base_widget.label == name:
                 return self.body.index(item)
 
+
+class SMS(list):
+
+    def __init__(self, *args):
+        list.__init__(self, *args)
+        for number in global_data:
+            sms_list = global_data[number]
+            self.append(self.make_widget(sms_list))
+
+    def make_widget(self, sms_list):
+        body = []
+        for contact, sms in sms_list:
+            attr = "sms_recv" if sms.type == 1 else "sms_send"
+            text_widget = urwid.Text((attr, sms.sms))
+            sms.widget = text_widget
+            body.append(text_widget)
+        return urwid.ListBox(urwid.SimpleFocusListWalker(body))
 
 class NameMsg(urwid.Columns):
 
@@ -87,23 +94,22 @@ class NameMsg(urwid.Columns):
         client_socket.send(b'button clicked\n')
 
     def new_sms(self, data):
-        client_socket.send(b'new sms\n')
         name = data["name"] if data["name"] != "unknown" else data["number"]
         index = self.list_name_widget.get_index_for_name(name)
+
         self.list_sms_widget[index].body.insert(0, urwid.Text(("sms_recv", data["sms"]), "right"))
         self.list_sms_widget[index].set_focus_path([0])
         self.widget_list[1] = self.list_sms_widget[index]
         # need to shift list of name to get the new one on the top
-        widget = self.list_name_widget.body[index]
+        widget_name = self.list_name_widget.body[index]
+        widget_sms = self.list_sms_widget[index]
         for i in range(index, 0, -1):
             self.list_name_widget.body[i] = self.list_name_widget.body[i-1]
-        self.widget_list[1] = self.list_name_widget
+            self.sms_list_sms_widget[i] = self.list_sms_widget[i-1]
+        self.list_name_widget.body[0] = widget_name
+        self.list_sms_widget.body[0] = widget_sms
 
     def send_confirmation(self, data):
-        # client_socket.send(bytes(str(self.widget_to_update).encode()))
-        # client_socket.send(b'\n')
-        # client_socket.send(bytes(str(self.widget_to_update.body[0]).encode()))
-        # client_socket.send(b'\n')
         client_socket.send(b'send_confirmation method\n')
         widget_text = self.widget_to_update.body[0]
         widget_text = urwid.Text(("sms_send", widget_text.text), "right")
@@ -148,7 +154,6 @@ class Top(urwid.ListBox):
     def send_confirmation(self, data):
         self.name_msg.send_confirmation(data)
 
-
     def focus_edit_sms(self):
         self.set_focus_path([1])
         client_socket.send(b'cursor should be in edit\n')
@@ -185,6 +190,7 @@ class mainLoop(urwid.MainLoop):
         self.draw_screen()
 
     def done(self, data):
+        global_data = data
         top = Top(data, self)
         self.top = top
         self.widget = urwid.AttrMap(top, "bg")

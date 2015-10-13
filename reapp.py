@@ -18,11 +18,10 @@ class websocketHandler(websocket.WebSocketHandler):
     def open(self):
         self.initial_number = 0
         self.count = 0
-        self.sms_dict = OrderedDict()
         self.table = TableSms()
         if self.application.mainloop:
             self.application.mainloop.on_init()
-            self.application.mainloop.on_send = self.send
+            self.application.mainloop.send = self.send
         else:
             print('conection received')
 
@@ -37,8 +36,7 @@ class websocketHandler(websocket.WebSocketHandler):
             self.initial_number = int(data["data"])
 
         elif data["op"] == "init_data":
-            self.count = len(self.sms_dict.keys())
-            self.update_dict(data["data"])
+            self.count = len(self.table.display_name_list)
             self.table.add_entry(data["data"])
             if self.application.mainloop:
                 self.application.mainloop.init_data("received " + str(self.count) + " out of " + str(self.initial_number) + " conversation")
@@ -49,7 +47,7 @@ class websocketHandler(websocket.WebSocketHandler):
 
             if self.application.mainloop:
                 # self.application.mainloop.done(self.sms_dict)
-                self.application.mainloop.done(self.table)
+                self.application.mainloop.done()
             else:
                 # print(self.sms_dict)
                 # print("done")
@@ -57,6 +55,8 @@ class websocketHandler(websocket.WebSocketHandler):
 
         elif data["op"] == "sms_recv":
             if self.application.mainloop:
+                thread_id = self.table.get_thread_id_by_number(data["data"]["number"])
+                data["data"]["thread_id"] = thread_id
                 self.application.mainloop.on_recv(data["data"])
                 client.send(bytes(str(data["data"]).encode()))
                 client.send(b'\n')
@@ -73,22 +73,6 @@ class websocketHandler(websocket.WebSocketHandler):
                 print("sms confirmation")
                 print(data["data"])
 
-    def update_dict(self, data):
-        if data["number"] not in self.sms_dict.keys():
-            self.sms_dict[data["number"]] = \
-                    [{  "name": data["name"],
-                        "sms": data["sms"],
-                        "read": data["read"],
-                        "time": data["time"],
-                        "type": data["type"]}]
-        else:
-            self.sms_dict[data["number"]].append(
-                    {"name": data["name"],
-                     "sms": data["sms"],
-                     "read": data["read"],
-                     "time": data["time"],
-                     "type": data["type"]})
-
 
     def on_close(self):
         if not self.application.mainloop:
@@ -102,7 +86,6 @@ class App(tornado.web.Application):
         if not mainloop:
             print("server started")
         super(App, self).__init__([(r"/", websocketHandler)], debug=True)
-        # tornado.web.Application.__init__(self, [(r"/", websocketHandler)], debug=True)
 
 
 def start_server(mainloop):
