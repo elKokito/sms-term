@@ -8,8 +8,8 @@ import socket
 import reapp
 from sms_struct import *
 
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect(('localhost', 5000))
+# client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# client_socket.connect(('localhost', 5000))
 global_data = TableSms()
 
 class MyButton(urwid.Button):
@@ -143,8 +143,8 @@ class Top(urwid.ListBox):
         self.grid.send_confirmation(data)
 
     def on_receive(self, data):
-        client_socket.send(b'on_receive in top\n')
-        client_socket.send(bytes(str(data).encode()))
+        # client_socket.send(b'on_receive in top\n')
+        # client_socket.send(bytes(str(data).encode()))
         contact = global_data.sms_table[data["thread_id"]][0][0]
         self.grid.move_to_top(contact, data["sms"], "sms_recv")
 

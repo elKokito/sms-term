@@ -3,8 +3,8 @@ import socket
 from collections import OrderedDict
 import socket
 
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect(('localhost', 5002))
+# client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# client.connect(('localhost', 5002))
 
 class Contact:
 
@@ -51,10 +51,10 @@ class TableSms:
 
         def get_index(self, widget):
             for display_name, contact in self.display_name_list:
-                client.send(bytes(str(contact.widget).encode()))
-                client.send(b'\n')
-                client.send(bytes(str(widget).encode()))
-                client.send(b'\n')
+                # client.send(bytes(str(contact.widget).encode()))
+                # client.send(b'\n')
+                # client.send(bytes(str(widget).encode()))
+                # client.send(b'\n')
                 if widget == contact.widget:
                     return contact.thread_id
 

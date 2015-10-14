@@ -10,8 +10,8 @@ from sms_struct import TableSms
 
 import socket
 
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect(('localhost', 5001))
+# client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# client.connect(('localhost', 5001))
 
 class websocketHandler(websocket.WebSocketHandler):
 
@@ -29,7 +29,7 @@ class websocketHandler(websocket.WebSocketHandler):
         self.write_message(data)
 
     def on_message(self, msg):
-        # client.send(bytes(str(msg).encode()))
+        # # client.send(bytes(str(msg).encode()))
         data = json.loads(msg)
 
         if data["op"] == "initial_count":
@@ -58,16 +58,16 @@ class websocketHandler(websocket.WebSocketHandler):
                 thread_id = self.table.get_thread_id_by_number(data["data"]["number"])
                 data["data"]["thread_id"] = thread_id
                 self.application.mainloop.on_recv(data["data"])
-                client.send(bytes(str(data["data"]).encode()))
-                client.send(b'\n')
+                # client.send(bytes(str(data["data"]).encode()))
+                # client.send(b'\n')
             else:
                 print("sms received")
                 print(data["data"])
 
         elif data["op"] == "sms_confirmation":
             if self.application.mainloop:
-                client.send(bytes(str(data["data"]).encode()))
-                client.send(b'\n')
+                # client.send(bytes(str(data["data"]).encode()))
+                # client.send(b'\n')
                 self.application.mainloop.on_send_confirmation(data)
             else:
                 print("sms confirmation")
