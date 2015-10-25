@@ -91,13 +91,13 @@ class App(tornado.web.Application):
 def start_server(mainloop):
     app = App(mainloop)
     server = tornado.httpserver.HTTPServer(app)
-    server.listen(8000)
+    server.listen(5025)
     tornado.ioloop.IOLoop.instance().start()
 
 def main():
     app = App()
     httpserver = tornado.httpserver.HTTPServer(app)
-    httpserver.listen(8000)
+    httpserver.listen(5025)
     tornado.ioloop.IOLoop.instance().start()
 
 

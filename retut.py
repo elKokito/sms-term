@@ -7,6 +7,7 @@ import json
 import socket
 import reapp
 from sms_struct import *
+import notify2
 
 # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # client_socket.connect(('localhost', 5000))
@@ -161,6 +162,7 @@ class mainLoop(urwid.MainLoop):
         t = threading.Thread(target=reapp.start_server, args=(self,), daemon=True)
         t.start()
         self.top = None
+        notify2.init("sms")
         super(mainLoop, self).__init__(top, palette, unhandled_input=self.quit)
 
     def quit(self, key):
@@ -185,6 +187,8 @@ class mainLoop(urwid.MainLoop):
         self.draw_screen()
 
     def on_recv(self, data):
+        n = notify2.Notification("sms", "message receive\n" + data["name"])
+        n.show()
         self.top.on_receive(data)
         self.draw_screen()
 
