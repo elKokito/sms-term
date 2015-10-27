@@ -153,11 +153,11 @@ class Top(urwid.ListBox):
 class mainLoop(urwid.MainLoop):
 
     def __init__(self):
-        palette = [("name", "", "", "", "#6dd", "black"),
-                   ("sms_recv", "", "", "", "#6dd", "black"),
-                   ("sms_send", "", "", "", "g52", "black"),
-                   ("bg", "", "", "", "", "black"),
-                   ("sms_send_query", "", "", "", "#ff0", "black")]
+        palette = [("name", "", "", "", "#6dd", ""),
+                   ("sms_recv", "", "", "", "#6dd", ""),
+                   ("sms_send", "", "", "", "g52", ""),
+                   ("bg", "", "", "", "", ""),
+                   ("sms_send_query", "", "", "", "#ff0", "")]
         top = urwid.Filler(urwid.Text("waiting phone connection"))
         t = threading.Thread(target=reapp.start_server, args=(self,), daemon=True)
         t.start()
